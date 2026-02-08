@@ -1,0 +1,157 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  username     String   @unique
+  email        String   @unique
+  passwordHash String
+  name         String
+  avatar       String   @default("")
+  bio          String   @default("")
+  points       Int      @default(0)
+  tier         String   @default("rookie")
+  location     String   @default("")
+  instagram    String   @default("")
+  youtube      String   @default("")
+  tiktok       String   @default("")
+  createdAt    DateTime @default(now())
+
+  spots         Spot[]
+  clips         Clip[]
+  comments      Comment[]
+  ratings       Rating[]
+  likes         Like[]
+  saves         Save[]
+  followers     Follow[]       @relation("FollowTarget")
+  following     Follow[]       @relation("FollowSource")
+  notifications Notification[] @relation("NotificationTarget")
+  sourceNotifs  Notification[] @relation("NotificationSource")
+}
+
+model Follow {
+  id          String   @id @default(cuid())
+  followerId  String
+  followingId String
+  createdAt   DateTime @default(now())
+
+  follower  User @relation("FollowSource", fields: [followerId], references: [id], onDelete: Cascade)
+  following User @relation("FollowTarget", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId])
+}
+
+model Spot {
+  id          String   @id @default(cuid())
+  name        String
+  description String   @default("")
+  lat         Float
+  lng         Float
+  difficulty  String   @default("Beginner")
+  type        String   @default("Street")
+  features    String   @default("[]")
+  isVerified  Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  createdById String
+
+  createdBy User        @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  images    SpotImage[]
+  clips     Clip[]
+  ratings   Rating[]    @relation("SpotRating")
+}
+
+model SpotImage {
+  id     String @id @default(cuid())
+  url    String
+  spotId String
+
+  spot Spot @relation(fields: [spotId], references: [id], onDelete: Cascade)
+}
+
+model Clip {
+  id          String   @id @default(cuid())
+  url         String
+  thumbnail   String   @default("")
+  description String   @default("")
+  trickName   String   @default("")
+  type        String   @default("video")
+  views       Int      @default(0)
+  createdAt   DateTime @default(now())
+  userId      String
+  spotId      String
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  spot     Spot      @relation(fields: [spotId], references: [id], onDelete: Cascade)
+  likes    Like[]
+  comments Comment[]
+  ratings  Rating[]  @relation("ClipRating")
+}
+
+model Like {
+  id        String   @id @default(cuid())
+  userId    String
+  clipId    String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  clip Clip @relation(fields: [clipId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, clipId])
+}
+
+model Save {
+  id        String   @id @default(cuid())
+  userId    String
+  clipId    String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, clipId])
+}
+
+model Rating {
+  id        String   @id @default(cuid())
+  value     Int
+  userId    String
+  spotId    String?
+  clipId    String?
+  createdAt DateTime @default(now())
+
+  user User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  spot Spot? @relation("SpotRating", fields: [spotId], references: [id], onDelete: Cascade)
+  clip Clip? @relation("ClipRating", fields: [clipId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, spotId])
+  @@unique([userId, clipId])
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  content   String
+  userId    String
+  clipId    String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  clip Clip @relation(fields: [clipId], references: [id], onDelete: Cascade)
+}
+
+model Notification {
+  id           String   @id @default(cuid())
+  type         String
+  read         Boolean  @default(false)
+  userId       String
+  sourceUserId String
+  resourceId   String   @default("")
+  createdAt    DateTime @default(now())
+
+  user       User @relation("NotificationTarget", fields: [userId], references: [id], onDelete: Cascade)
+  sourceUser User @relation("NotificationSource", fields: [sourceUserId], references: [id], onDelete: Cascade)
+}
