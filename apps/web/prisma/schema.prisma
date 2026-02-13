@@ -1,0 +1,362 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  username     String   @unique
+  email        String   @unique
+  passwordHash String
+  name         String
+  avatar       String   @default("")
+  bio          String   @default("")
+  points       Int      @default(0)
+  tier         String   @default("rookie")
+  location     String   @default("")
+  instagram    String   @default("")
+  youtube      String   @default("")
+  tiktok       String   @default("")
+  createdAt    DateTime @default(now())
+
+  spots         Spot[]
+  clips         Clip[]
+  comments      Comment[]
+  ratings       Rating[]
+  likes         Like[]
+  saves         Save[]
+  followers     Follow[]       @relation("FollowTarget")
+  following     Follow[]       @relation("FollowSource")
+  notifications Notification[] @relation("NotificationTarget")
+  sourceNotifs  Notification[] @relation("NotificationSource")
+
+  // V2 relations
+  battleVotes              BattleVote[]
+  challengeVotes           ChallengeVote[]
+  podiumBadges             PodiumBadge[]
+  conversationParticipants ConversationParticipant[]
+  messages                 Message[]
+  crewMemberships          CrewMember[]
+  createdCrews             Crew[]
+  trickLogs                TrickLog[]
+  achievements             Achievement[]
+  activityEvents           ActivityEvent[]
+}
+
+model Follow {
+  id          String   @id @default(cuid())
+  followerId  String
+  followingId String
+  createdAt   DateTime @default(now())
+
+  follower  User @relation("FollowSource", fields: [followerId], references: [id], onDelete: Cascade)
+  following User @relation("FollowTarget", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId])
+}
+
+model Spot {
+  id          String   @id @default(cuid())
+  name        String
+  description String   @default("")
+  lat         Float
+  lng         Float
+  difficulty  String   @default("Beginner")
+  type        String   @default("Street")
+  features    String   @default("[]")
+  isVerified  Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  createdById String
+
+  createdBy    User          @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  images       SpotImage[]
+  clips        Clip[]
+  ratings      Rating[]      @relation("SpotRating")
+  battles      Battle[]
+  challenges   Challenge[]
+  podiumBadges PodiumBadge[]
+}
+
+model SpotImage {
+  id     String @id @default(cuid())
+  url    String
+  spotId String
+
+  spot Spot @relation(fields: [spotId], references: [id], onDelete: Cascade)
+}
+
+model Clip {
+  id          String   @id @default(cuid())
+  url         String
+  thumbnail   String   @default("")
+  description String   @default("")
+  trickName   String   @default("")
+  type        String   @default("video")
+  views       Int      @default(0)
+  createdAt   DateTime @default(now())
+  userId      String
+  spotId      String
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  spot     Spot      @relation(fields: [spotId], references: [id], onDelete: Cascade)
+  likes    Like[]
+  comments Comment[]
+  ratings  Rating[]  @relation("ClipRating")
+
+  // V2 relations
+  battlesAsClip1    Battle[]      @relation("BattleClip1")
+  battlesAsClip2    Battle[]      @relation("BattleClip2")
+  battleVotes       BattleVote[]
+  challengesAsChallenger Challenge[] @relation("ChallengerClip")
+  challengesAsDefender   Challenge[] @relation("DefenderClip")
+  challengeVotes    ChallengeVote[]
+  podiumBadges      PodiumBadge[]
+  trickLogs         TrickLog[]
+}
+
+model Like {
+  id        String   @id @default(cuid())
+  userId    String
+  clipId    String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  clip Clip @relation(fields: [clipId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, clipId])
+}
+
+model Save {
+  id        String   @id @default(cuid())
+  userId    String
+  clipId    String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, clipId])
+}
+
+model Rating {
+  id        String   @id @default(cuid())
+  value     Int
+  userId    String
+  spotId    String?
+  clipId    String?
+  createdAt DateTime @default(now())
+
+  user User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  spot Spot? @relation("SpotRating", fields: [spotId], references: [id], onDelete: Cascade)
+  clip Clip? @relation("ClipRating", fields: [clipId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, spotId])
+  @@unique([userId, clipId])
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  content   String
+  userId    String
+  clipId    String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  clip Clip @relation(fields: [clipId], references: [id], onDelete: Cascade)
+}
+
+model Notification {
+  id           String   @id @default(cuid())
+  type         String
+  read         Boolean  @default(false)
+  userId       String
+  sourceUserId String
+  resourceId   String   @default("")
+  createdAt    DateTime @default(now())
+
+  user       User @relation("NotificationTarget", fields: [userId], references: [id], onDelete: Cascade)
+  sourceUser User @relation("NotificationSource", fields: [sourceUserId], references: [id], onDelete: Cascade)
+}
+
+// ==================== V2 Models ====================
+
+model Battle {
+  id         String   @id @default(cuid())
+  spotId     String
+  clip1Id    String
+  clip2Id    String
+  clip1Votes Int      @default(0)
+  clip2Votes Int      @default(0)
+  status     String   @default("active")
+  winnerId   String?
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+
+  spot  Spot        @relation(fields: [spotId], references: [id], onDelete: Cascade)
+  clip1 Clip        @relation("BattleClip1", fields: [clip1Id], references: [id], onDelete: Cascade)
+  clip2 Clip        @relation("BattleClip2", fields: [clip2Id], references: [id], onDelete: Cascade)
+  votes BattleVote[]
+}
+
+model BattleVote {
+  id        String   @id @default(cuid())
+  battleId  String
+  userId    String
+  clipId    String
+  createdAt DateTime @default(now())
+
+  battle Battle @relation(fields: [battleId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  clip   Clip   @relation(fields: [clipId], references: [id], onDelete: Cascade)
+
+  @@unique([battleId, userId])
+}
+
+model Challenge {
+  id               String   @id @default(cuid())
+  spotId           String
+  challengerClipId String
+  defenderClipId   String
+  position         Int
+  challengerVotes  Int      @default(0)
+  defenderVotes    Int      @default(0)
+  status           String   @default("active")
+  winnerId         String?
+  expiresAt        DateTime
+  createdAt        DateTime @default(now())
+
+  spot           Spot            @relation(fields: [spotId], references: [id], onDelete: Cascade)
+  challengerClip Clip            @relation("ChallengerClip", fields: [challengerClipId], references: [id], onDelete: Cascade)
+  defenderClip   Clip            @relation("DefenderClip", fields: [defenderClipId], references: [id], onDelete: Cascade)
+  votes          ChallengeVote[]
+}
+
+model ChallengeVote {
+  id          String   @id @default(cuid())
+  challengeId String
+  userId      String
+  clipId      String
+  createdAt   DateTime @default(now())
+
+  challenge Challenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  clip      Clip      @relation(fields: [clipId], references: [id], onDelete: Cascade)
+
+  @@unique([challengeId, userId])
+}
+
+model PodiumBadge {
+  id        String   @id @default(cuid())
+  spotId    String
+  userId    String
+  clipId    String
+  position  Int
+  awardedAt DateTime @default(now())
+
+  spot Spot @relation(fields: [spotId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  clip Clip @relation(fields: [clipId], references: [id], onDelete: Cascade)
+
+  @@unique([spotId, position])
+}
+
+model Conversation {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  participants ConversationParticipant[]
+  messages     Message[]
+}
+
+model ConversationParticipant {
+  id             String   @id @default(cuid())
+  conversationId String
+  userId         String
+  lastReadAt     DateTime @default(now())
+  joinedAt       DateTime @default(now())
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([conversationId, userId])
+}
+
+model Message {
+  id             String   @id @default(cuid())
+  conversationId String
+  senderId       String
+  content        String
+  type           String   @default("text")
+  clipId         String?
+  createdAt      DateTime @default(now())
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender       User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
+}
+
+model Crew {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String   @default("")
+  avatar      String   @default("")
+  totalPoints Int      @default(0)
+  createdById String
+  createdAt   DateTime @default(now())
+
+  createdBy User         @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  members   CrewMember[]
+}
+
+model CrewMember {
+  id       String   @id @default(cuid())
+  crewId   String
+  userId   String
+  role     String   @default("member")
+  joinedAt DateTime @default(now())
+
+  crew Crew @relation(fields: [crewId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([crewId, userId])
+}
+
+model TrickLog {
+  id        String   @id @default(cuid())
+  userId    String
+  trickName String
+  category  String   @default("other")
+  landedAt  DateTime @default(now())
+  clipId    String?
+  notes     String   @default("")
+
+  user User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  clip Clip? @relation(fields: [clipId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, trickName])
+}
+
+model Achievement {
+  id         String   @id @default(cuid())
+  userId     String
+  badgeKey   String
+  unlockedAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, badgeKey])
+}
+
+model ActivityEvent {
+  id         String   @id @default(cuid())
+  userId     String
+  type       String
+  resourceId String   @default("")
+  metadata   String   @default("{}")
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}

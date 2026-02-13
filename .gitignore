@@ -1,7 +1,5 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
 # dependencies
-/node_modules
+node_modules
 /.pnp
 .pnp.*
 .yarn/*
@@ -14,7 +12,7 @@
 /coverage
 
 # next.js
-/.next/
+.next/
 /out/
 
 # production
@@ -30,12 +28,14 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
+# env files
 .env*
 
 # prisma
 prisma/dev.db
 prisma/dev.db-journal
+**/dev.db
+**/dev.db-journal
 
 # uploads
 public/uploads/
@@ -46,3 +46,7 @@ public/uploads/
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# expo
+.expo/
+dist/
