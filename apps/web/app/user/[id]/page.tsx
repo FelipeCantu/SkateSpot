@@ -4,10 +4,11 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { MapPin, Link as LinkIcon, Calendar, Loader2 } from "lucide-react";
+import { MapPin, Link as LinkIcon, Calendar, Loader2, Wrench } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { FollowButton } from "@/components/FollowButton";
 import { FeedCard } from "@/components/FeedCard";
+import { GearSetupCard } from "@/components/GearSetupCard";
 import { useFeed } from "@/context/FeedContext";
 
 interface UserProfile {
@@ -34,6 +35,7 @@ export default function UserProfilePage() {
     const { getClipsByUser } = useFeed();
     const [user, setUser] = useState<UserProfile | null>(null);
     const [loading, setLoading] = useState(true);
+    const [activeGear, setActiveGear] = useState<any>(null);
 
     useEffect(() => {
         fetch(`/api/users/${userId}`)
@@ -41,6 +43,13 @@ export default function UserProfilePage() {
             .then(setUser)
             .catch(console.error)
             .finally(() => setLoading(false));
+        fetch(`/api/gear?userId=${userId}`)
+            .then((r) => r.json())
+            .then((data) => {
+                const active = (data || []).find((g: any) => g.isActive);
+                if (active) setActiveGear(active);
+            })
+            .catch(console.error);
     }, [userId]);
 
     const userClips = getClipsByUser(userId);
@@ -142,6 +151,17 @@ export default function UserProfilePage() {
                         </div>
                     </div>
                 </div>
+
+                {/* Active Gear */}
+                {activeGear && (
+                    <div className="mt-6 border-t border-white/5 pt-6">
+                        <h3 className="text-sm font-medium text-neutral-400 flex items-center gap-1.5 mb-2">
+                            <Wrench size={14} />
+                            Active Setup
+                        </h3>
+                        <GearSetupCard setup={activeGear} isOwner={false} />
+                    </div>
+                )}
 
                 {/* User's Clips */}
                 <div className="mt-6 border-t border-white/5 pt-6">

@@ -58,10 +58,15 @@ export interface Comment {
     createdAt: number;
 }
 
+export type NotificationType =
+    | 'like' | 'comment' | 'follow' | 'achievement'
+    | 'battle_invite' | 'battle_result' | 'challenge' | 'crew_invite' | 'message'
+    | 'session_invite' | 'session_starting' | 'crew_battle_started' | 'event_starting' | 'tutorial_helpful';
+
 export interface Notification {
     id: string;
     userId: string;
-    type: 'like' | 'comment' | 'follow' | 'achievement' | 'battle_invite' | 'battle_result' | 'challenge' | 'crew_invite' | 'message';
+    type: NotificationType;
     sourceUserId: string;
     resourceId?: string;
     read: boolean;
@@ -84,7 +89,13 @@ export type ActivityEventType =
     | 'crew_joined'
     | 'challenge_won'
     | 'podium_earned'
-    | 'follow';
+    | 'follow'
+    | 'session_hosted'
+    | 'session_joined'
+    | 'crew_battle_won'
+    | 'event_won'
+    | 'tutorial_created'
+    | 'gear_setup_created';
 
 export interface Battle {
     id: string;
@@ -216,5 +227,134 @@ export interface ActivityEvent {
     type: ActivityEventType;
     resourceId: string;
     metadata: string;
+    createdAt: number;
+}
+
+// V3 Types
+
+export type SessionStatus = 'active' | 'scheduled' | 'completed' | 'cancelled';
+export type CrewBattleStatus = 'active' | 'voting' | 'completed';
+export type EventType = 'contest' | 'jam' | 'meetup';
+export type EventStatus = 'upcoming' | 'active' | 'voting' | 'completed';
+export type EventCategory = 'open' | 'flatground' | 'grinds' | 'best-trick';
+export type TutorialDifficulty = 'beginner' | 'intermediate' | 'advanced' | 'expert';
+
+export interface GearSetup {
+    id: string;
+    userId: string;
+    name: string;
+    deckBrand: string;
+    deckSize: string;
+    trucksBrand: string;
+    wheelsBrand: string;
+    wheelsSize: string;
+    bearingsBrand: string;
+    shoesBrand: string;
+    photos: string[];
+    isActive: boolean;
+    createdAt: number;
+}
+
+export interface Tutorial {
+    id: string;
+    userId: string;
+    trickName: string;
+    difficulty: TutorialDifficulty;
+    videoUrl: string;
+    thumbnail: string;
+    description: string;
+    steps: { step: number; text: string; timestamp?: number }[];
+    views: number;
+    helpfulCount: number;
+    createdAt: number;
+}
+
+export interface TutorialVote {
+    id: string;
+    tutorialId: string;
+    userId: string;
+    helpful: boolean;
+    createdAt: number;
+}
+
+export interface SkateSession {
+    id: string;
+    userId: string;
+    spotId: string;
+    status: SessionStatus;
+    title: string;
+    description: string;
+    startTime: number;
+    endTime?: number;
+    maxParticipants?: number;
+    createdAt: number;
+}
+
+export interface SessionParticipant {
+    id: string;
+    sessionId: string;
+    userId: string;
+    status: 'joined' | 'interested';
+    joinedAt: number;
+}
+
+export interface CrewBattleType {
+    id: string;
+    crew1Id: string;
+    crew2Id: string;
+    spotId?: string;
+    status: CrewBattleStatus;
+    theme: string;
+    startDate: number;
+    endDate: number;
+    winnerId?: string;
+    createdAt: number;
+}
+
+export interface CrewBattleClip {
+    id: string;
+    battleId: string;
+    crewId: string;
+    clipId: string;
+    userId: string;
+    createdAt: number;
+}
+
+export interface CrewBattleVote {
+    id: string;
+    battleId: string;
+    clipId: string;
+    userId: string;
+    createdAt: number;
+}
+
+export interface EventType2 {
+    id: string;
+    name: string;
+    description: string;
+    type: EventType;
+    spotId?: string;
+    startTime: number;
+    endTime: number;
+    createdById: string;
+    category: EventCategory;
+    prizes: any[];
+    status: EventStatus;
+    createdAt: number;
+}
+
+export interface EventParticipant {
+    id: string;
+    eventId: string;
+    userId: string;
+    clipId?: string;
+    joinedAt: number;
+}
+
+export interface EventVote {
+    id: string;
+    eventId: string;
+    clipId: string;
+    userId: string;
     createdAt: number;
 }

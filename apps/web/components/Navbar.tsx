@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useSession, signOut } from "next-auth/react";
-import { Menu, X, MapPin, Video, LayoutDashboard, User, LogIn, LogOut, Bell, Swords, MessageCircle, Users } from "lucide-react";
+import { Menu, X, MapPin, Video, LayoutDashboard, User, LogIn, LogOut, Bell, Swords, MessageCircle, Users, Calendar, Trophy } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { useFeed } from "@/context/FeedContext";
@@ -35,6 +35,8 @@ export function Navbar() {
                         <NavLink href="/map" icon={<MapPin size={18} />}>Spots</NavLink>
                         <NavLink href="/feed" icon={<Video size={18} />}>Feed</NavLink>
                         <NavLink href="/battles" icon={<Swords size={18} />}>Battles</NavLink>
+                        <NavLink href="/sessions" icon={<Calendar size={18} />}>Sessions</NavLink>
+                        <NavLink href="/events" icon={<Trophy size={18} />}>Events</NavLink>
                         <NavLink href="/leaderboard" icon={<LayoutDashboard size={18} />}>Rankings</NavLink>
 
                         {session?.user ? (
@@ -97,6 +99,12 @@ export function Navbar() {
                                                                     {n.type === "comment" && "New comment on your clip"}
                                                                     {n.type === "follow" && "Someone started following you"}
                                                                     {n.type === "achievement" && "You earned an achievement!"}
+                                                                    {n.type === "tutorial_helpful" && "Someone found your tutorial helpful"}
+                                                                    {n.type === "session_invite" && "You've been invited to a session"}
+                                                                    {n.type === "crew_battle_started" && "A crew battle has started!"}
+                                                                    {n.type === "event_starting" && "An event you joined is starting soon"}
+                                                                    {n.type === "event_invite" && "You've been invited to an event"}
+                                                                    {!["like", "comment", "follow", "achievement", "tutorial_helpful", "session_invite", "crew_battle_started", "event_starting", "event_invite"].includes(n.type) && "You have a new notification"}
                                                                 </p>
                                                                 {!n.read && (
                                                                     <span className="inline-block w-1.5 h-1.5 bg-accent rounded-full ml-1" />
@@ -177,6 +185,8 @@ export function Navbar() {
                             <MobileNavLink href="/map" icon={<MapPin size={18} />}>Spots</MobileNavLink>
                             <MobileNavLink href="/feed" icon={<Video size={18} />}>Feed</MobileNavLink>
                             <MobileNavLink href="/battles" icon={<Swords size={18} />}>Battles</MobileNavLink>
+                            <MobileNavLink href="/sessions" icon={<Calendar size={18} />}>Sessions</MobileNavLink>
+                            <MobileNavLink href="/events" icon={<Trophy size={18} />}>Events</MobileNavLink>
                             <MobileNavLink href="/leaderboard" icon={<LayoutDashboard size={18} />}>Rankings</MobileNavLink>
                             {session?.user ? (
                                 <>

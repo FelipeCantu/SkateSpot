@@ -60,7 +60,7 @@ export interface Comment {
 export interface Notification {
     id: string;
     userId: string;
-    type: 'like' | 'comment' | 'follow' | 'achievement';
+    type: 'like' | 'comment' | 'follow' | 'achievement' | 'battle_invite' | 'battle_result' | 'challenge' | 'crew_invite' | 'message' | 'session_invite' | 'session_starting' | 'crew_battle_started' | 'event_starting' | 'tutorial_helpful' | 'event_invite';
     sourceUserId: string;
     resourceId?: string; // Clip ID or Spot ID
     read: boolean;

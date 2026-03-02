@@ -1,12 +1,13 @@
 "use client";
 
-import { Settings, MapPin, Link as LinkIcon, Calendar, Grid, Bookmark, Heart, Edit2 } from "lucide-react";
+import { Settings, MapPin, Link as LinkIcon, Calendar, Grid, Bookmark, Heart, Edit2, Wrench } from "lucide-react";
 import Image from "next/image";
 import { useState, useEffect } from "react";
 import { useUser } from "@/context/UserContext";
 import { useFeed } from "@/context/FeedContext";
 import { FeedCard } from "@/components/FeedCard";
 import { EditProfileModal } from "@/components/EditProfileModal";
+import { GearSetupCard } from "@/components/GearSetupCard";
 import Link from "next/link";
 
 export default function ProfilePage() {
@@ -16,6 +17,17 @@ export default function ProfilePage() {
     const [isEditOpen, setIsEditOpen] = useState(false);
     const [savedClips, setSavedClips] = useState<any[]>([]);
     const [likedClips, setLikedClips] = useState<any[]>([]);
+    const [activeGear, setActiveGear] = useState<any>(null);
+
+    useEffect(() => {
+        fetch("/api/gear")
+            .then((r) => r.json())
+            .then((data) => {
+                const active = (data || []).find((g: any) => g.isActive);
+                if (active) setActiveGear(active);
+            })
+            .catch(console.error);
+    }, []);
 
     useEffect(() => {
         if (activeTab === "saved") {
@@ -145,6 +157,20 @@ export default function ProfilePage() {
                         </div>
                     </div>
                 </div>
+
+                {/* Active Gear */}
+                {activeGear && (
+                    <div className="px-4 pb-4">
+                        <div className="flex items-center justify-between mb-2">
+                            <h3 className="text-sm font-medium text-neutral-400 flex items-center gap-1.5">
+                                <Wrench size={14} />
+                                Active Setup
+                            </h3>
+                            <Link href="/gear" className="text-xs text-secondary hover:underline">View all</Link>
+                        </div>
+                        <GearSetupCard setup={activeGear} isOwner={false} />
+                    </div>
+                )}
 
                 {/* Content Tabs */}
                 <div className="border-t border-white/5">

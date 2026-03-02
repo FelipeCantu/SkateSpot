@@ -4,19 +4,22 @@ import { useState, useEffect, use } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Users, Trophy, Shield, ArrowLeft, LogOut, Crown, UserPlus } from "lucide-react";
+import { Users, Trophy, Shield, ArrowLeft, LogOut, Crown, UserPlus, Swords } from "lucide-react";
 import { useSession } from "next-auth/react";
+import { CrewBattleCard } from "@/components/CrewBattleCard";
 
 export default function CrewDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const { data: session } = useSession();
   const router = useRouter();
   const [crew, setCrew] = useState<any>(null);
+  const [battles, setBattles] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const userId = (session?.user as any)?.id;
 
   useEffect(() => {
     fetchCrew();
+    fetchBattles();
   }, [id]);
 
   async function fetchCrew() {
@@ -27,6 +30,15 @@ export default function CrewDetailPage({ params }: { params: Promise<{ id: strin
       console.error(err);
     } finally {
       setIsLoading(false);
+    }
+  }
+
+  async function fetchBattles() {
+    try {
+      const res = await fetch(`/api/crew-battles?crewId=${id}`);
+      if (res.ok) setBattles(await res.json());
+    } catch (err) {
+      console.error(err);
     }
   }
 
@@ -118,6 +130,36 @@ export default function CrewDetailPage({ params }: { params: Promise<{ id: strin
             </div>
           )}
         </div>
+      </div>
+
+      {/* Crew Battles */}
+      <div className="mb-8">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-bold text-white flex items-center gap-2">
+            <Swords size={18} className="text-purple-400" />
+            Crew Battles
+          </h2>
+          {session?.user && (crew.userRole === "owner" || crew.userRole === "admin") && (
+            <button
+              onClick={() => router.push(`/crews/${id}/challenge`)}
+              className="flex items-center gap-2 px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white text-xs font-medium rounded-lg transition-colors"
+            >
+              <Swords size={14} />
+              Challenge Another Crew
+            </button>
+          )}
+        </div>
+        {battles.length === 0 ? (
+          <div className="text-center py-8 text-neutral-500 text-sm bg-neutral-900 border border-white/5 rounded-xl">
+            No battles yet
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {battles.map((b) => (
+              <CrewBattleCard key={b.id} battle={b} />
+            ))}
+          </div>
+        )}
       </div>
 
       <h2 className="text-lg font-bold text-white mb-4">Members</h2>

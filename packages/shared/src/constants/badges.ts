@@ -35,6 +35,14 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
   { key: 'triple_crown', name: 'Triple Crown', description: 'Hold gold at 3 different spots', icon: 'gem', category: 'special', requirement: 'Gold at 3 spots', secret: true },
   { key: 'social_butterfly', name: 'Social Butterfly', description: 'Be in 3 different crews', icon: 'butterfly', category: 'special', requirement: 'Join 3 crews', secret: true },
   { key: 'perfectionist', name: 'Perfectionist', description: 'Get a 5-star rating on a clip', icon: 'star', category: 'special', requirement: '5-star clip rating', secret: true },
+
+  // V3 badges
+  { key: 'session_host_10', name: 'Session Master', description: 'Host 10 skate sessions', icon: 'calendar', category: 'activity', requirement: 'Host 10 sessions' },
+  { key: 'crew_battle_winner', name: 'Crew Champion', description: 'Win a crew battle', icon: 'swords', category: 'social', requirement: 'Win a crew battle' },
+  { key: 'event_winner', name: 'Contest King', description: 'Win 1st place in an event', icon: 'trophy', category: 'social', requirement: 'Win an event' },
+  { key: 'tutorial_creator_5', name: 'Teacher', description: 'Create 5 tutorials', icon: 'book-open', category: 'milestone', requirement: 'Create 5 tutorials' },
+  { key: 'tutorial_helpful_50', name: 'Helpful Guru', description: 'Get 50 helpful votes on tutorials', icon: 'thumbs-up', category: 'milestone', requirement: '50 helpful votes' },
+  { key: 'gear_head', name: 'Gear Head', description: 'Create your first gear setup', icon: 'wrench', category: 'milestone', requirement: 'Create a gear setup' },
 ];
 
 export const BADGE_MAP = Object.fromEntries(

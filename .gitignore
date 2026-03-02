@@ -50,3 +50,6 @@ next-env.d.ts
 # expo
 .expo/
 dist/
+
+# claude
+.claude/

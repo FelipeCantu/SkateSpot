@@ -45,6 +45,18 @@ model User {
   trickLogs                TrickLog[]
   achievements             Achievement[]
   activityEvents           ActivityEvent[]
+
+  // V3 relations
+  gearSetups           GearSetup[]
+  tutorials            Tutorial[]
+  tutorialVotes        TutorialVote[]
+  sessions             Session[]
+  sessionParticipants  SessionParticipant[]
+  crewBattleClips      CrewBattleClip[]
+  crewBattleVotes      CrewBattleVote[]
+  events               Event[]
+  eventParticipants    EventParticipant[]
+  eventVotes           EventVote[]
 }
 
 model Follow {
@@ -79,6 +91,11 @@ model Spot {
   battles      Battle[]
   challenges   Challenge[]
   podiumBadges PodiumBadge[]
+
+  // V3 relations
+  sessions    Session[]
+  crewBattles CrewBattle[]
+  events      Event[]
 }
 
 model SpotImage {
@@ -116,6 +133,10 @@ model Clip {
   challengeVotes    ChallengeVote[]
   podiumBadges      PodiumBadge[]
   trickLogs         TrickLog[]
+
+  // V3 relations
+  crewBattleClips    CrewBattleClip[]
+  eventParticipations EventParticipant[]
 }
 
 model Like {
@@ -309,6 +330,12 @@ model Crew {
 
   createdBy User         @relation(fields: [createdById], references: [id], onDelete: Cascade)
   members   CrewMember[]
+
+  // V3 relations
+  crewBattlesAsCrew1 CrewBattle[] @relation("BattleCrew1")
+  crewBattlesAsCrew2 CrewBattle[] @relation("BattleCrew2")
+  crewBattleWins     CrewBattle[] @relation("BattleWinner")
+  crewBattleClips    CrewBattleClip[]
 }
 
 model CrewMember {
@@ -359,4 +386,180 @@ model ActivityEvent {
   createdAt  DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ==================== V3 Models ====================
+
+model GearSetup {
+  id            String   @id @default(cuid())
+  userId        String
+  name          String
+  deckBrand     String   @default("")
+  deckSize      String   @default("")
+  trucksBrand   String   @default("")
+  wheelsBrand   String   @default("")
+  wheelsSize    String   @default("")
+  bearingsBrand String   @default("")
+  shoesBrand    String   @default("")
+  photos        String   @default("[]")
+  isActive      Boolean  @default(false)
+  createdAt     DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Tutorial {
+  id           String   @id @default(cuid())
+  userId       String
+  trickName    String
+  difficulty   String   @default("beginner")
+  videoUrl     String   @default("")
+  thumbnail    String   @default("")
+  description  String   @default("")
+  steps        String   @default("[]")
+  views        Int      @default(0)
+  helpfulCount Int      @default(0)
+  createdAt    DateTime @default(now())
+
+  user  User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  votes TutorialVote[]
+}
+
+model TutorialVote {
+  id         String   @id @default(cuid())
+  tutorialId String
+  userId     String
+  helpful    Boolean
+  createdAt  DateTime @default(now())
+
+  tutorial Tutorial @relation(fields: [tutorialId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([tutorialId, userId])
+}
+
+model Session {
+  id              String   @id @default(cuid())
+  userId          String
+  spotId          String
+  status          String   @default("active")
+  title           String
+  description     String   @default("")
+  startTime       DateTime @default(now())
+  endTime         DateTime?
+  maxParticipants Int?
+  createdAt       DateTime @default(now())
+
+  user         User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  spot         Spot                 @relation(fields: [spotId], references: [id], onDelete: Cascade)
+  participants SessionParticipant[]
+}
+
+model SessionParticipant {
+  id        String   @id @default(cuid())
+  sessionId String
+  userId    String
+  status    String   @default("joined")
+  joinedAt  DateTime @default(now())
+
+  session Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([sessionId, userId])
+}
+
+model CrewBattle {
+  id        String    @id @default(cuid())
+  crew1Id   String
+  crew2Id   String
+  spotId    String?
+  status    String    @default("active")
+  theme     String    @default("")
+  startDate DateTime  @default(now())
+  endDate   DateTime
+  winnerId  String?
+  createdAt DateTime  @default(now())
+
+  crew1  Crew             @relation("BattleCrew1", fields: [crew1Id], references: [id], onDelete: Cascade)
+  crew2  Crew             @relation("BattleCrew2", fields: [crew2Id], references: [id], onDelete: Cascade)
+  spot   Spot?            @relation(fields: [spotId], references: [id], onDelete: SetNull)
+  winner Crew?            @relation("BattleWinner", fields: [winnerId], references: [id], onDelete: SetNull)
+  clips  CrewBattleClip[]
+  votes  CrewBattleVote[]
+}
+
+model CrewBattleClip {
+  id       String   @id @default(cuid())
+  battleId String
+  crewId   String
+  clipId   String
+  userId   String
+  createdAt DateTime @default(now())
+
+  battle CrewBattle @relation(fields: [battleId], references: [id], onDelete: Cascade)
+  crew   Crew       @relation(fields: [crewId], references: [id], onDelete: Cascade)
+  clip   Clip       @relation(fields: [clipId], references: [id], onDelete: Cascade)
+  user   User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([battleId, clipId])
+}
+
+model CrewBattleVote {
+  id       String   @id @default(cuid())
+  battleId String
+  clipId   String
+  userId   String
+  createdAt DateTime @default(now())
+
+  battle CrewBattle @relation(fields: [battleId], references: [id], onDelete: Cascade)
+  user   User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([battleId, userId])
+}
+
+model Event {
+  id          String    @id @default(cuid())
+  name        String
+  description String    @default("")
+  type        String    @default("contest")
+  spotId      String?
+  startTime   DateTime
+  endTime     DateTime
+  createdById String
+  category    String    @default("open")
+  prizes      String    @default("[]")
+  status      String    @default("upcoming")
+  createdAt   DateTime  @default(now())
+
+  createdBy    User               @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  spot         Spot?              @relation(fields: [spotId], references: [id], onDelete: SetNull)
+  participants EventParticipant[]
+  votes        EventVote[]
+}
+
+model EventParticipant {
+  id      String  @id @default(cuid())
+  eventId String
+  userId  String
+  clipId  String?
+  joinedAt DateTime @default(now())
+
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  clip  Clip? @relation(fields: [clipId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, userId])
+}
+
+model EventVote {
+  id      String   @id @default(cuid())
+  eventId String
+  clipId  String
+  userId  String
+  createdAt DateTime @default(now())
+
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, userId])
 }

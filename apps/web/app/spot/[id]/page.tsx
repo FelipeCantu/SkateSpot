@@ -7,6 +7,7 @@ import Link from "next/link";
 import { MapPin, Star, Video, Crown, Medal, Trophy, Loader2 } from "lucide-react";
 import { StarRating } from "@/components/StarRating";
 import { UploadClipModal } from "@/components/UploadClipModal";
+import { WeatherWidget } from "@/components/WeatherWidget";
 import { formatDistanceToNow } from "date-fns";
 
 interface SpotDetail {
@@ -242,8 +243,11 @@ export default function SpotDetailPage() {
                         )}
                     </div>
 
-                    {/* Sidebar - King of the Spot */}
-                    <div>
+                    {/* Sidebar */}
+                    <div className="space-y-6">
+                        {/* Weather */}
+                        <WeatherWidget lat={spot.location[0]} lng={spot.location[1]} />
+
                         <div className="bg-neutral-900 border border-white/5 rounded-2xl overflow-hidden sticky top-20">
                             <div className="p-4 border-b border-white/5 bg-gradient-to-r from-yellow-500/10 to-transparent">
                                 <h3 className="font-bold text-white flex items-center gap-2">
